@@ -1,0 +1,95 @@
+---
+title: "Hantz_Angrand_HW1"
+author: "Hantz Angrand"
+date: "September 1, 2018"
+output:
+  html_document:
+    df_print: paged
+---
+#Load essential library
+```{r}
+library(plyr)
+```
+
+#Load the data
+```{r}
+mushroom<-read.csv("https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data", header = FALSE, sep =",")
+
+head(mushroom)
+```
+
+#Rename column Headers
+```{r}
+colnames(mushroom)<-c("class", "cap-shape", "cap-surface", "cap-color", "bruises", "odor", "gill-attachment", "gill-spacing", "gill-size", "gill-color", "stalk-shape", "stalk-root", "stalk-surface-above ring", "stalk-surface-below ring", "stalk color-above-ring", "stalk-color-below-ring", "veil-type", "veil-color", "ring-number", "ring-type", "spore-print-color", "population", "habitats")
+
+mush<-data.frame(mushroom)
+
+head(mush)
+```
+
+#Select a subset of the data
+```{r}
+mush<-subset(mush, select=c("class","cap.shape", "cap.color","odor", "habitats"))
+head(mush)
+```
+
+#Modifying the data to make it more user friendly by replacing abbreviations
+```{r}
+levels(mush$class)<-c("edible", "poisonous")
+levels(mush$class)
+```
+
+```{r}
+levels(mush$cap.shape)<-c("bell","conical","flat","knobbed","sunken","convex")
+levels(mush$cap.shape)
+```
+
+```{r}
+levels(mush$cap.color)<-c("buff","cinnamon","red","gray","brown","pink","green","purple","white","yellow")
+levels(mush$cap.color)
+```
+
+
+```{r}
+levels(mush$odor)<-c("almond","creosote","foul","anise","musty","none","pungent","spicy","fishy")
+levels(mush$odor)
+```
+
+```{r}
+levels(mush$habitats)<-c("woods","grasses","leaves","meadows","paths","urban","waste")
+levels(mush$habitats)
+```
+
+```{r}
+head(mush)
+```
+
+#Group the data by class
+```{r}
+edible<-subset(mush,class="edible")
+dim(edible)
+```
+```{r}
+summary(edible)
+```
+
+```{r}
+poisonous<-subset(mush, class="poisonous")
+dim(poisonous)
+```
+
+
+```{r}
+summary(poisonous)
+```
+
+#Plotting some data
+```{r}
+plot(edible$habitats, las=3)
+```
+
+
+```{r}
+plot(poisonous$habitats, las=3)
+```
+
