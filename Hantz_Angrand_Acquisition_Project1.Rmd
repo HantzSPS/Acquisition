@@ -1,0 +1,112 @@
+---
+title: "Hantz_Angrand_Project1"
+author: "Hantz Angrand"
+date: "September 22, 2018"
+output:
+  html_document:
+    df_print: paged
+---
+##Project Statement
+n this project, you're given a text file with chess tournament results where the information has some structure. Your job is to create an R Markdown file that generates a .CSV file (that could for example be imported into a SQL database) with the following information for all of the players: Player's Name, Player's State, Total Number of Points, Player's Pre-Rating, and Average Pre Chess Rating of Opponents
+
+#First Upload libraries needed for the project
+```{r}
+library(stringr)
+```
+
+#Upload the files from my computer
+```{r}
+source_data<-read.csv("C:/Users/hangr/Documents/Acquisition and data management/tournamentinfo.txt")
+head(source_data)
+```
+
+##Cleaning the datasets
+```{r}
+#First remove separators
+rem_sep<-str_detect(source_data,"\\-----")
+src_data<-source_data[!rem_sep]
+#Remove headers
+src_data<-src_data[-c(1:2),]
+src_data<-str_split(src_data,"\\|")
+```
+
+```{r}
+#extract names of all players
+ext_names<-str_extract_all(src_data,"[[:alpha:]-?[:alpha:] ?]{2,}")
+loc<-str_detect(unlist(ext_names),"[[:alpha:]]{3,}")
+player_names<-unlist(ext_names)[loc]
+head(player_names)
+```
+
+```{r}
+#Get State of origin
+state_loc<-str_detect(unlist(ext_names),"[[:alpha:]]{2,}")
+get_state<-unlist(ext_names)[(state_loc)&(!loc)]
+head(get_state)
+```
+
+```{r}
+#Get Point per games
+pts_data<-str_extract_all(src_data,"\\d{1,}+\\.?.?")
+pts_location<-str_detect(unlist(pts_data),"\\d\\.\\d")
+pts<-unlist(pts_data)[(pts_location)]
+head(pts)
+```
+
+```{r}
+#Get pre_ratings and post_ratings
+#Extract pre ratings
+rating_data<-str_extract_all(src_data,"(( \\:)|(\\>))?.?\\d{1,}P*\\.?")
+
+pre_location<-str_detect(unlist(rating_data),"\\b\\d{3,4}P?\\b")
+post_location<-str_detect(unlist(rating_data),"\\>.?\\b\\d{3,4}P?\\b")
+pre_rating<-unlist(rating_data)[(pre_location)&(!post_location)]
+pre_rating<-str_replace_all(pre_rating,"P","")
+post_rating<-unlist(rating_data)[post_location]
+post_rating<-str_replace_all(post_rating,"([>P])","")
+head(pre_rating)
+```
+```{r}
+head(post_rating)
+```
+```{r}
+#Get Games played
+game_data<-str_extract_all(src_data,"[[:alpha:]]...\\d{1,2}")
+game_data<-str_extract_all(game_data,"\\.?\\d{1,2}")
+game_data<-str_replace_all(game_data,"\\b[0]\\b",".")
+game<-str_detect(game_data,fixed("."))
+game_data<-game_data[!(game)]
+head(game_data)
+```
+
+```{r}
+#Combined all the extract into a data frame
+player_rank<-data.frame(player_names,get_state,pts,pre_rating,post_rating)
+head(player_rank)
+```
+
+```{r}
+#Convert pts, pre_rating and post_rating to numeric
+player_rank$pts<-as.numeric(as.character(player_rank$pts))
+player_rank$pre_rating<-as.numeric(as.character(player_rank$pre_rating))
+player_rank$post_rating<-as.numeric(as.character(player_rank$post_rating))
+
+head(player_rank)
+```
+
+```{r}
+result<-array(0)
+#Calculate the average
+for (i in 1:nrow(player_rank))
+{
+  result_match<-as.numeric(str_split(unlist(str_extract_all(game_data[i],"\\d{1,2}")), " "))
+  result[i]<-mean(player_rank[result_match,colnames(player_rank)=="pre_rating"])
+};
+player_rank$avg_rating<-result
+head(player_rank)
+```
+##Write the output to CSV file
+```{r}
+write.csv(player_rank, "chess_data.csv", row.names=FALSE)
+```
+
