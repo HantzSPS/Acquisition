@@ -1,0 +1,78 @@
+---
+title: "Hantz_Angrand_Assignment5"
+author: "Hantz Angrand"
+date: "September 29, 2018"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+delay<-read.csv("C:/Users/hangr/Documents/Acquisition and data management/Arrivals.csv", header=TRUE)
+delay
+```
+
+The dataset has 20 records and 7 variables.  We have airlines, the status of the airlines going to 5 cities.Our goal is to compare the arrival delays for the two airlines.
+
+```{r}
+#Load the libraries
+library(dplyr)
+library(tidyr)
+
+```
+
+```{r}
+#names the columns
+names(delay)[1]<-"Airlines"
+names(delay)[2]<-"Status"
+delay
+```
+```{r}
+#Remove NA
+delay<-delay %>%
+  filter(!is.na(Phoenix))
+
+delay
+  
+```
+```{r}
+#Fill out missing Airlines Value
+
+delay$Airlines<-as.character(delay$Airlines)
+delay$Airlines[delay$Airlines=='']<-c("Alaska", "AM West")
+delay
+```
+##Gather city column and transform it
+```{r}
+delay_trans<-tidyr::gather(delay,"City", "Count",3:7)
+delay_trans
+```
+##Spresd status so that they become a value
+```{r}
+delay_trans2<-tidyr::spread(delay_trans,Status, Count)
+delay_trans2
+```
+
+##Graphof delayed Flight
+```{r}
+#Upload ggplot library
+library(ggplot2)
+```
+
+```{r}
+#Plot of delayed airlines
+ggplot(filter(delay_trans,Status=="Delay"),aes(City,Count, color=Airlines))+geom_point(size=3)+ggtitle("Delayed Flight")+ylab("Number of Delayed Flights")
+
+```
+##Comparing the arrivals delay for the two airlines
+```{r}
+sum_delay<-delay_trans2 %>% dplyr::group_by(Airlines) %>%
+  dplyr::summarise(max=max(Delay),
+                   min=min(Delay),
+                   avg=mean(Delay),
+                   SD=sd(Delay),
+                   IQR=IQR(Delay))
+sum_delay
+```
+##Conclusion
+AM West is most likely to be delayed than Alaska
