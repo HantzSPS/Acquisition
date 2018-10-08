@@ -1,0 +1,91 @@
+---
+title: "Hantz_Angrand_Project2"
+author: "Hantz Angrand"
+date: "October 6, 2018"
+output:
+  html_document:
+    df_print: paged
+---
+##Goal
+The goal of this assignment is to give you practice in preparing different datasets for downstream analysis work.
+##Upload dataset
+cod<-read.csv(C:/Users/hangr/Documents/Acquisition and data management/Tap.csv)
+
+```{r}
+tap<-read.csv("C:/Users/hangr/Documents/Acquisition and data management/Tap.csv")
+
+```
+
+Tap dataset is an open data dataset found in the opendata website.   Tap stands for The New York State Tuition Assistance Program (TAP). It helps eligible New York residents pay tuition at approved schools in New York State. Depending on the academic year in which you begin study, an annual TAP award can be up to $5,165. Because TAP is a grant, it does not have to be paid back.  In our analysis we will try to determine how many student take advantages of the stipend and how it is ditributed.
+
+Since the data is already in a structured format we will rename the headers and choose some variables to do the analysis.
+
+##Loading the libraries
+```{r}
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+```
+Select the variables needed to do the analysis
+
+```{r}
+#Rename the columns
+names(tap)[1]="Year"
+names(tap)[4]="Sector"
+names(tap)[6]="Age"
+names(tap)[11]="Income"
+names(tap)[14]="Count"
+names(tap)[16]="Amount"
+head(tap)
+```
+Let's get the variable needed for the analysis
+```{r}
+tap %>%
+  select(Year,Sector,Age,Income,Count,Amount)
+
+head(tap)
+```
+
+Get the voulme of dollars distributed every year
+```{r}
+amount_year<-tap %>%
+  group_by(Year) %>%
+  summarise(Total=sum(Amount)) %>%
+  arrange(desc(Total))
+
+amount_year
+```
+
+How many people receive the tap every year
+```{r}
+count_year<- tap %>%
+  group_by(Year, Amount) %>%
+  summarise(total=sum(Count)) %>%
+  arrange(desc(total))
+
+head(count_year)
+```
+
+Let's get the highest amount distributed for a year
+```{r}
+top_amount<- tap %>%
+  group_by(Age) %>%
+  top_n(1, Amount)
+
+top_amount
+```
+
+Under age 22 has received the most amount distributed by TAP.
+```{r}
+plots_top<-tail(top_amount,20)
+
+ggplot(plots_top, aes(plots_top$Age, plots_top$Amount)) + geom_bar(stat="identity")
+```
+
+The program has expected give young people without income the opportunity to go to college as illustrated in the graph.
+
+
+
+
+
+
