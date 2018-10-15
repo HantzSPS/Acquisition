@@ -1,0 +1,49 @@
+---
+title: "Hantz_Angrand_Acquisition_HW7"
+author: "Hantz Angrand"
+date: "October 14, 2018"
+output: pdf_document
+---
+
+##Read html data
+```{r}
+#Load XML Library
+library('XML')
+```
+
+```{r}
+#Read html file
+book_html<-readHTMLTable('C:/Users/hangr/Documents/Acquisition and data management/myBooks/books.html')
+book_html
+```
+
+```{r}
+#Reading XML file
+book_xml<-xmlToDataFrame('C:/Users/hangr/Documents/Acquisition and data management/myBooks/books.xml')
+book_xml
+```
+
+##Reading JSON File
+```{r}
+#Load libraries jsonlite
+library('jsonlite')
+```
+
+```{r}
+books_json<-fromJSON('C:/Users/hangr/Documents/Acquisition and data management/myBooks/books.json')
+books_json
+```
+
+```{r}
+identical(book_html,book_xml)
+```
+
+```{r}
+identical(book_html,books_json)
+```
+
+```{r}
+identical(book_xml, books_json)
+```
+
+NONE OF OUR FILE TYPE ARE IDENTICAL.
