@@ -1,0 +1,67 @@
+---
+title: "Hantz_Angrand_Acquisition_HW9"
+author: "Hantz Angrand"
+date: "October 27, 2018"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The New York Times web site provides a rich set of APIs, as described here:  http://developer.nytimes.com/docs You'll need to start by signing up for an API key. Your task is to choose one of the New York Times APIs, construct an interface in R to read in the JSON data, and transform it to an R dataframe
+
+#Step1 Load Libraries
+```{r}
+library(httr)
+library(jsonlite)
+library(stringr)
+library(dplyr)
+
+```
+
+Get New York Timeslist  best Seller of harcover fiction APi
+```{r}
+url = "https://api.nytimes.com/svc/books/v3/lists.json?list=hardcover-fiction&api-key=2ef725a076f148dd868c378cac2f1c72"
+books_api<-GET(url)
+```
+
+
+#Step2 Convert into a Dataframe
+
+```{r}
+#JSON file
+books_parsed<-fromJSON(content(books_api, "text"))
+books_parsed
+```
+
+
+```{r}
+#Get only the results
+df<-data.frame(books_parsed$results)
+head(df)
+```
+```{r}
+#From the results get the books details in a table
+library(kableExtra)
+kable(df$book_details)
+```
+
+
+
+```{r}
+#Print all the best sellers books 
+for (i in 1:15){
+print(df$book_details[i])
+}
+```
+
+
+
+
+
+
+
+
