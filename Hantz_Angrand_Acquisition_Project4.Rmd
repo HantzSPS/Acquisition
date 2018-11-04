@@ -1,0 +1,145 @@
+---
+title: "Hantz_Angrand_Acquistion_Project4"
+author: "Hantz Angrand"
+date: "November 3, 2018"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+##Upload needed libraries
+```{r}
+library("tm")
+library("RTextTools")
+library("tidyverse")
+library("stringr")
+library("SnowballC")
+library("wordcloud")
+```
+Location where the files were extracted.  The files were taken from this website https://spamassassin.apache.org/old/publiccorpus/
+
+```{r}
+spam_dir<-"C:\\Users\\hangr\\Documents\\Acquisition and data management\\spam"
+ham_dir<-"C:\\Users\\hangr\\Documents\\Acquisition and data management\\hard_ham"
+```
+
+We need to classify each individual file as spam and ham.  We will use VCorpus from tidyverse to do so
+```{r}
+spam<-spam_dir %>% DirSource() %>% VCorpus()
+ham<-ham_dir %>% DirSource() %>% VCorpus()
+meta(ham[[1]])
+```
+
+##Cleaning and tidying the dataset
+```{r}
+#spam dataset
+spam<- spam %>% tm_map(content_transformer(PlainTextDocument)) #Transform spam to plain text
+spam <- spam %>% tm_map(content_transformer(removePunctuation)) #Remove period from the text
+spam <- spam %>% tm_map(content_transformer(tolower)) #Put the text in lower case
+spam <- spam %>% tm_map(content_transformer(removeNumbers)) #Removing numbers if any
+spam <- spam %>% tm_map(content_transformer(stemDocument), language="english")
+spam <- spam %>% tm_map(removeWords, c('receiv', stopwords('english'))) #Remove list of words
+
+```
+
+```{r}
+#ham dataset
+ham<- ham %>% tm_map(content_transformer(PlainTextDocument)) #Transform spam to plain text
+ham <- ham %>% tm_map(content_transformer(removePunctuation)) #Remove period from the text
+ham<- ham %>% tm_map(content_transformer(tolower)) #Put the text in lower case
+ham <- ham %>% tm_map(content_transformer(removeNumbers)) #Removing numbers if any
+ham <- ham %>% tm_map(content_transformer(stemDocument), language="english")
+ham <- ham %>% tm_map(removeWords, c('receiv', stopwords('english')))
+```
+
+
+
+Joining both datasets together
+```{r}
+ham_spam <- c(spam, ham)
+meta(ham_spam[[1]])
+```
+
+In the following step we will identify which part of the data is spam and which one is not by adding 1 for spam and 0 for non spam
+```{r}
+for (i in 1: length(ham)){
+  meta(ham_spam[[i]],"classification")<-0
+}
+
+for(i in (length(ham)+1):(length(ham) + length(spam))){
+  meta(ham_spam[[i]],"classification")<- 1
+}
+for (i in 1:10){
+  ham_spam<-sample(ham_spam)
+}
+meta(ham_spam[[11]])
+```
+
+##Tokenize the joint dataset using DocumentTermMatrix
+```{r}
+ham_spam_dtm<-DocumentTermMatrix(ham_spam)
+ham_spam_dtm
+```
+
+```{r}
+#Remove sparse terms
+ham_spam_dtm<-ham_spam_dtm %>%removeSparseTerms(1-(10/length(ham_spam)))
+ham_spam_dtm
+```
+##Statistics about spam_dtm and ham_dtm
+```{r}
+spam_dtm<-spam %>% DocumentTermMatrix()
+spam_f<-spam_dtm %>% as.matrix %>% colSums()
+length(spam_f)
+```
+
+```{r}
+ham_dtm<-ham %>% DocumentTermMatrix()
+ham_f<-ham_dtm %>% as.matrix %>% colSums
+length(ham_f)
+```
+#Wordcloud
+```{r}
+#spam wordcloud
+wordcloud(spam, max.words=15, random.order = FALSE, random.color=TRUE, colors = palette())
+```
+
+
+```{r}
+#ham wordcloud
+wordcloud(ham, max.words=15, random.order = FALSE, random.color=TRUE, colors=palette())
+```
+
+##Classification model with Naives Bayes
+```{r}
+lbl_ham_spam<-as.vector(unlist(meta(ham_spam, type ="local", tag = "classification")))
+head(lbl_ham_spam)
+```
+```{r}
+N<-length(lbl_ham_spam)
+ham_spam_cont<-create_container(ham_spam_dtm,labels = lbl_ham_spam, trainSize = 1:520, testSize = 521:N, virgin = TRUE)
+```
+
+#RandomForest
+Random Forest is a classification model that uses the training set to create multiple decision trees and assign the data in the test set a classification which is the result of each individual decision tree.
+```{r}
+tree_dec_ham_spam<-train_model(ham_spam_cont, "TREE")
+tree_res_ham_spam<-classify_model(ham_spam_cont, tree_dec_ham_spam)
+head(tree_res_ham_spam)
+```
+
+```{r}
+#Probability
+prop.table(table(tree_res_ham_spam[,1]== lbl_ham_spam[521:N]))
+```
+
+With the random forest model, we can predict at 94% of accuracy.
+
+##References
++Automated Data Collection Chapter 10
++https://www3.nd.edu/~steve/computing_with_data/20_text_mining/text_mining_example.html#/
++https://www.tidytextmining.com/tidytext.html
+
