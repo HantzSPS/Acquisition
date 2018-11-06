@@ -1,0 +1,57 @@
+---
+title: "Hantz_Angrand_Acquisition_Discussion11"
+author: "Hantz Angrand"
+date: "November 6, 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Spotify and its Recommendation System
+##Introduction
+Recommendation systems or recommendations engines is a system capable of predicting the future preference of a set of items for a user and recommend the top items.  It has the potentiality to change the way users communicate with end users and allow companies to benefit from their return of investment considering the information the gather from their users and preferences. In the following paragraph we are going to analyse the Spotify recommendation system by answering the three questions of the scenario design:  
+* Who are the target users?
+* What are their goals?
+* How can you help them accomplish their goals?  
+
+##Recommendation System Fundamental
+For big companies like Google, Amazon and Netflix recommendation system is an important tool.  Each company collects demographic data about their users and add it to previous purchase behavior and products rating.  But the implementation of the recommendation system varies among the big companies we have:  
+1.- Collaborative Filtering
+Based on the teaste of many users it predicts what can interest a person.  
+2.-Content Base Filtering
+It focuses on the products itself and recommends products that have similar attributes.  
+3.- Demographic Based Recommender System
+Categorized users on a set of demographic classes.
+4.-Utility Based Recommender System
+Recommendations are based on the usefulness of each individual user.
+5.-Knowledge base recommendation system
+Predictions are made based on information relating to each user's preferences and needs.
+6.-Hybrid Filtering
+It is most likely a combination of any two of the above systems.  
+
+The list above is not exaustive but it shows there are many ways to accomplish the same thing.Let's see how Spotify has implemented its recommendation system
+
+##Music Recommendation at scale from Spotify
+[Spotify](https://www.spotify.com/us/) is a digital music service that gives users access to millions of songs.  This product targets amateurs, lovers and professional of musics.  Their goals are to give those people access to all the songs they like at anytime for a low cost.  Also it wants to keep them interested by providing the latest songs that match their preferences. How their recommendation systems work?  
+
+Spotify uses 5 recommendations system:  
+1.-Personalized recommendation  system  
+2.-Radio  
+3.-Related Artists  
+4.-Now Playing  
+5.-Discover weekly playlist    
+we are going to talk about the last one since it is the most innovative uses of recommendation system.    
+Kown as Release Radar it works by looking at 2 billion playlists created by users, each base of music preferences for individual users.  It the combines it with their own playlist and fill in the blanks by comparing a user's listening habits to those of users with similar tastes.  It uses collaborative approach filtring with deep learning to identify patterns that improve the Discovery weekly playlist.  
+This alhorithm allows Spotify to always update personal playlist with the latest music the users like.  
+
+##Conclusion
+The recommendation system is highly customized.  Each company uses it in a certain fashion to take advantage of the data they have and give their users the best experience that in turn contribute to their profitability.  Spotify is using it to predict what songs the users will want on their playlist based on the user's listening habits.  However Spotify could give users more relevant recommendations by digging deeper on the user's preferences and habits.
+
+##References
+*https://www.techemergence.com/use-cases-recommendation-systems/  
+*https://hackernoon.com/introduction-to-recommender-system-part-1-collaborative-filtering-singular-value-decomposition-44c9659c5e75
+
+
+
