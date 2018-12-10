@@ -1,0 +1,256 @@
+---
+title: "Hantz_Angrand_Acquisition_Project_Proposal"
+author: "Hantz Angrand"
+date: "November 11, 2018"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##1.-Problem
+Recently Kaggle has tried to get the pulse of data science around the world through a survey.  The results of the survey is available to everybody that participated in the survey.  Kaggle also encourages its community to deep dive into the data in order to discover about the many communities comprised in the survey.  
+
+In this perspective I want to discover how the involvement of minorities group in data science.  We want specifically explore the priorities,concerns and the tools they use and the difficulties they face in the domain of data science.  
+
+For this research, we will group similar countries that are almost the same characteristic.  We choose african countrie and some South America countries where by first impression they are not considered a major player in the domain of data science.
+
+Then compare to the size of this group in the general population do they get involved in data science as the same percentage or are their revenues compare to other group in the survey.  Also determine what are the priorities or concerns of this group in data science perspective.
+
+##2.-Data
+
+Kaggle conducts an industry wide survey that wants to understand the state of data science and machine learning.  The survey was live in October and more than 20000 people participate in the survey.  The results include who are working with data, what is happening with machine learning in different industries and the best ways for new data scientist to break into the field.  
+
+The data can be found here.  https://www.kaggle.com/kaggle/kaggle-survey-2018
+ or via API kaggle datasets download -d kaggle/kaggle-survey-2018
+
+##Loading libraries
+
+```{r}
+library(tidyverse)
+library(dplyr)
+```
+ 
+ 
+```{r}
+#Load the data
+srv_18<-read.csv("C:/Users/hangr/Documents/Acquisition and data management/FinalProject/multipleChoiceResponses.csv/multipleChoiceResponses.csv", skip = 1)
+head(srv_18)
+```
+
+##Build our dataset from the survey
+
+In our analysis we want to understand the state of data science in minority communities.  To do so we will choose 5-7 countries that can be classified as minorities in the data science world like Nigeria, Colombia, Kenya,Indonesia,South Africa, Malaysia, Tunisia.  In our dataset we will fliter by those countries and bind them together to form a new dataset.
+
+```{r}
+#Nigeria
+colombia<-filter(srv_18, In.which.country.do.you.currently.reside.=='Colombia') %>%
+  rename("Country"=In.which.country.do.you.currently.reside.)
+
+#Columbia
+nigeria<-filter(srv_18, In.which.country.do.you.currently.reside.=="Nigeria") %>%
+  rename("Country"=In.which.country.do.you.currently.reside.)
+
+#Kenya
+kenya<-filter(srv_18, In.which.country.do.you.currently.reside.=="Kenya") %>%
+  rename("Country"=In.which.country.do.you.currently.reside.)
+
+#Indonesia
+indonesia<-filter(srv_18, In.which.country.do.you.currently.reside.=="Indonesia") %>%
+  rename("Country"=In.which.country.do.you.currently.reside.)
+
+#South Africa
+southafrica<-filter(srv_18, In.which.country.do.you.currently.reside.=="South Africa") %>%
+  rename("Country"=In.which.country.do.you.currently.reside.)
+#Malaysia
+malaysia<-filter(srv_18, In.which.country.do.you.currently.reside.=="Malaysia") %>%
+  rename("Country"=In.which.country.do.you.currently.reside.)
+#Tunisia
+#tunisia<- filter(srv_18, In.which.country.do.you.currently.reside.=="Tunisia") %>%
+  #rename("Country"=In.which.country.do.you.currently.reside)
+
+min_country<-rbind(colombia,nigeria,kenya,indonesia,southafrica,malaysia)
+head(min_country)
+```
+
+##Cleaning the data and remove null value from the Dataset
+
+How many record in the reduced dataset
+```{r}
+count(min_country)
+```
+
+We can use 852 records to get some good insight about the state of data science.  However our dataset might be cluttered with NA values. Let's check our dataset for NA.  We will use the summary function to see if there is NA.
+```{r}
+min_country %>%
+  summarize(number_nas = sum(is.na(Country)))
+```
+
+Is it true the dataset does not have any null value.  We can check that assumption checking all the columns in the dataset for NA.  We will use the purrr package that allows us to apply the function to all columns in the dataset
+```{r}
+min_country %>%
+  purrr::map_df(~ sum(is.na(.)))
+  
+```
+Now can we be certain there is no empty string.  Let's check a specific column
+
+```{r}
+min_country %>%
+  count(Which.best.describes.your.undergraduate.major....Selected.Choice) %>%
+  rename("Undergraduate Major"= Which.best.describes.your.undergraduate.major....Selected.Choice)
+```
+
+Here we can see there are 24 people that didn't respond to the question. Now let's replace all the empty strings with NAs using the condition na_if
+```{r}
+#min_country<-min_country %>%
+  #na_if("")
+#min_country
+```
+
+
+```{r}
+#min_country %>%
+ # purrr::map_df(~ sum(is.na(.)))
+```
+Now we can see most of them have NAs.
+
+##Analyzing  And Visualizing of our data
+```{r}
+#colnames(min_country)
+```
+We have 395 columns in the dataset.
+
+For the sake of our analysis we are going to select all numeric columns and get the statistics for all of them.  We are going to use the skimr package to do so.
+```{r}
+library(skimr)
+```
+
+```{r}
+min_country %>%
+  select_if(is.numeric) %>%
+  skimr::skim()
+```
+
+As we can see as a glance we have the mean, the standard deviation, the percentile and the histogram for all numeric variables.
+
+In the survey we might be interested in distinct responses provided by the responders. We are going the gather function to transform our wide dataset to a long dataset
+```{r}
+min_country %>% 
+  purrr::map_df(~ n_distinct(.)) %>%
+  gather(Questions, distinct_answers) %>%
+  arrange(desc(distinct_answers))
+
+```
+
+In our dataset the primary tools used at work or at school vary.  In a dataset of 800, 174 responders use different tools.
+
+Let's focus on the programming laguages used by our population for their work in datascience.
+
+```{r}
+language<-min_country %>%
+  select(What.specific.programming.language.do.you.use.most.often....Selected.Choice) %>%
+  rename("Specific Programming Language"=What.specific.programming.language.do.you.use.most.often....Selected.Choice) %>%
+  filter(!is.na("Specific Programming Language"))
+language
+```
+What is the most frequent used.
+```{r}
+language_freq<-language %>%
+  count(`Specific Programming Language`, sort = TRUE) 
+  
+language_freq
+```
+
+Let's visualize the language used using ggplot
+```{r}
+language %>% 
+  count(`Specific Programming Language`) %>%
+  ggplot(aes(fct_reorder(`Specific Programming Language`,n), y=n)) +
+  geom_col()+
+  coord_flip()
+```
+
+The most used language is Python followed by R.
+```{r}
+data_science<-min_country %>%
+  select(contains("Do.you.consider.yourself.to.be.a.data.scientist."))%>%
+  gather(question,response)
+data_science
+```
+```{r}
+ds_num<-data_science %>%
+  count(response)
+
+ds_num
+```
+
+
+```{r}
+  ggplot(ds_num,aes(fct_reorder(response,n), y=n)) +
+  geom_col()+
+  coord_flip()
+```
+They are not totally considered a datascience as it shows on the graph.
+
+
+```{r}
+platform<-min_country%>%
+  select("On.which.online.platform.have.you.spent.the.most.amount.of.time....Selected.Choice")%>%
+  rename("platform"=On.which.online.platform.have.you.spent.the.most.amount.of.time....Selected.Choice)%>%
+  count(platform)
+
+  
+platform
+```
+```{r}
+platform %>%
+  ggplot(aes(fct_reorder(platform,n),n))+
+  geom_col()+
+  coord_flip()
+```
+Coursera top the course used to get training about big data and machine learning.
+
+```{r}
+comp<-min_country%>%
+  select(What.is.your.current.yearly.compensation..approximate..USD..)%>%
+  rename("Compensation"=What.is.your.current.yearly.compensation..approximate..USD..)%>%
+  count(Compensation)
+comp
+```
+
+```{r}
+comp%>%
+  ggplot(aes(fct_reorder(Compensation,n),n))+
+  geom_col()+
+  coord_flip()
+```
+
+It makes sense that those people do not get paid a lot to do the data science job comparely to developed countries like USA.
+
+```{r}
+gender<-min_country%>%
+  select(What.is.your.gender....Selected.Choice)%>%
+  rename("gender"=What.is.your.gender....Selected.Choice)%>%
+  count(gender)
+gender
+```
+```{r}
+gender%>%
+  ggplot(aes(fct_reorder(gender,n),n))+
+  geom_col()
+  
+```
+
+
+Data science is a Male carreer in the selected countries.
+
+
+##Conclusion
+-After studying the dataset of 5 countries we arrive at those conclusion.  Most of the respondents are male and are not making enough money comparatively to other countries.  They use the same tool as all data science around the world.  Python and R are the programming languages they use most often. Also they avidly use coursera to learn more about data science.  Eventhough they use the same tools as other countries they definitely not believe they are data scientist.  
+During this study I use the tidyverse package and I discover purrr and stringr packages.  The use of pipe in the tidyverse package makes the code more readable and you can combine multiple statement to get to a particular result.  
+
+Certainly our study is limited.  We could discover more insight with the dataset. In the future we can look at the concerns of different groups in the datascience domain.
